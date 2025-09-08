@@ -35,20 +35,12 @@ export default function Home() {
 
   useEffect(() => {
     if (initialQuery) {
-      
       if (page < 1) {
         router.push(`/?search=${encodeURIComponent(initialQuery)}&page=1`);
         return;
       }
-      if (page > totalPages) {
-        router.push(
-          `/?search=${encodeURIComponent(initialQuery)}&page=${totalPages}`
-        );
-        return;
-      }
 
       getImages(initialQuery, page);
-      
     } else {
       setHasSearched(false);
       setQuery("");
@@ -64,12 +56,6 @@ export default function Home() {
     setIsLoading(true);
     setHasSearched(true);
 
-    console.log("Getting images for:", query, "Page:", newPage);
-
-    // Checking for valid page number
-    if (newPage < 1) newPage = 1;
-    if (newPage > totalPages) newPage = totalPages;
-
     const res = await fetch(
       `/api/search?q=${query}&per_page=${nbrImagesPerPage}&page=${newPage}`,
       { cache: "no-store" }
@@ -78,10 +64,14 @@ export default function Home() {
     const data = await res.json();
 
     setTotalPages(data.total_pages);
-    setImages(data.images);
-    setIsLoading(false);
 
-    console.log("data", data);
+    if (page > data.total_pages && data.total_pages > 0) {
+      router.push(`/?search=${encodeURIComponent(query)}&page=${1}`);
+    }
+
+    setImages(data.images);
+
+    setIsLoading(false);
 
     return data.images;
   }
