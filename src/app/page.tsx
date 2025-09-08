@@ -103,6 +103,8 @@ export default function Home() {
         <h1 className="text-4xl md:text-7xl font-bold p-10 cursor-pointer">
           Image Search
         </h1>
+        {/* Search icon */}
+        
       </Link>
       <form onSubmit={handleSearch} className="mb-4">
         <SearchBar
@@ -111,7 +113,7 @@ export default function Home() {
           handleKeyDown={handleKeyDown}
         />
       </form>
-      {(hasSearched || isLoading) && (
+      {hasSearched || isLoading ? (
         <>
           <ImageGrid
             images={images}
@@ -158,6 +160,15 @@ export default function Home() {
               </Pagination>
             </div>
           )}
+        </>
+      ) : (
+        <>
+          <img
+            src="/undraw_searching_no1g.svg"
+            alt="searching"
+            className="w-1/4"
+          />
+          {/* <p>Search for some images!</p> */}
         </>
       )}
     </div>
