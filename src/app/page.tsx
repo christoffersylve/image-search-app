@@ -27,6 +27,7 @@ export default function Home() {
   const [totalPages, setTotalPages] = useState(1);
   const [images, setImages] = useState<UnsplashImage[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [hasSearched, setHasSearched] = useState(false);
 
   function sleep(ms: number): Promise<void> {
     return new Promise((resolve) => setTimeout(resolve, ms));
@@ -34,9 +35,22 @@ export default function Home() {
 
   useEffect(() => {
     if (initialQuery) {
-      console.log("Searching for:", initialQuery, "Page:", page);
+      
+      if (page < 1) {
+        router.push(`/?search=${encodeURIComponent(initialQuery)}&page=1`);
+        return;
+      }
+      if (page > totalPages) {
+        router.push(
+          `/?search=${encodeURIComponent(initialQuery)}&page=${totalPages}`
+        );
+        return;
+      }
+
       getImages(initialQuery, page);
+      
     } else {
+      setHasSearched(false);
       setQuery("");
       setImages([]);
       setIsLoading(false);
@@ -48,7 +62,14 @@ export default function Home() {
     newPage: number
   ): Promise<UnsplashImage[]> {
     setIsLoading(true);
-    // await sleep(2000);
+    setHasSearched(true);
+
+    console.log("Getting images for:", query, "Page:", newPage);
+
+    // Checking for valid page number
+    if (newPage < 1) newPage = 1;
+    if (newPage > totalPages) newPage = totalPages;
+
     const res = await fetch(
       `/api/search?q=${query}&per_page=${nbrImagesPerPage}&page=${newPage}`,
       { cache: "no-store" }
@@ -100,51 +121,53 @@ export default function Home() {
           handleKeyDown={handleKeyDown}
         />
       </form>
-      {(images.length > 0 || isLoading) && (
+      {(hasSearched || isLoading) && (
         <>
           <ImageGrid
             images={images}
             isLoading={isLoading}
             nbrImagesPerPage={nbrImagesPerPage}
           />
-          <div className="mt-6 flex justify-center">
-            <Pagination>
-              <PaginationContent>
-                <PaginationItem>
-                  <PaginationPrevious
-                    href="#"
-                    onClick={(e) => {
-                      e.preventDefault();
-                      if (page > 1) setPage(page - 1);
-                    }}
-                    className={
-                      page === 1 ? "pointer-events-none opacity-50" : ""
-                    }
-                  />
-                </PaginationItem>
+          {totalPages > 1 && (
+            <div className="mt-6 flex justify-center">
+              <Pagination>
+                <PaginationContent>
+                  <PaginationItem>
+                    <PaginationPrevious
+                      href="#"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        if (page > 1) setPage(page - 1);
+                      }}
+                      className={
+                        page === 1 ? "pointer-events-none opacity-50" : ""
+                      }
+                    />
+                  </PaginationItem>
 
-                {/* Current page */}
-                <PaginationItem>
-                  <PaginationLink isActive>{page}</PaginationLink>
-                </PaginationItem>
+                  {/* Current page */}
+                  <PaginationItem>
+                    <PaginationLink isActive>{page}</PaginationLink>
+                  </PaginationItem>
 
-                <PaginationItem>
-                  <PaginationNext
-                    href="#"
-                    onClick={(e) => {
-                      e.preventDefault();
-                      if (page < totalPages) setPage(page + 1);
-                    }}
-                    className={
-                      page === totalPages
-                        ? "pointer-events-none opacity-50"
-                        : ""
-                    }
-                  />
-                </PaginationItem>
-              </PaginationContent>
-            </Pagination>
-          </div>
+                  <PaginationItem>
+                    <PaginationNext
+                      href="#"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        if (page < totalPages) setPage(page + 1);
+                      }}
+                      className={
+                        page === totalPages
+                          ? "pointer-events-none opacity-50"
+                          : ""
+                      }
+                    />
+                  </PaginationItem>
+                </PaginationContent>
+              </Pagination>
+            </div>
+          )}
         </>
       )}
     </div>

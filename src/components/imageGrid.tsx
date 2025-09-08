@@ -29,6 +29,11 @@ const ImageGrid = ({
         </>
       ) : (
         <>
+          {images.length === 0 && !isLoading && (
+            <div className="col-span-full text-center">
+              <p>No images found.</p>
+            </div>
+          )}
           {images.map((image) => (
             <ImageCard key={image.id} image={image} isLoading={isLoading} />
           ))}
