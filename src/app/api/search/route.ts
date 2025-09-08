@@ -1,0 +1,63 @@
+// app/api/search/route.ts
+import { UnsplashImage } from "@/types/unsplash";
+import { NextResponse } from "next/server";
+
+export async function GET(req: Request) {
+  const { searchParams } = new URL(req.url);
+  const query = searchParams.get("q");
+  const perPage = searchParams.get("per_page") || "24";
+  const page = searchParams.get("page") || "1";
+
+  if (!query) {
+    return NextResponse.json({ error: "Missing query" }, { status: 400 });
+  }
+
+  const res = await fetch(
+    `https://api.unsplash.com/search/photos?query=${encodeURIComponent(
+      query
+    )}&per_page=${encodeURIComponent(perPage)}&page=${encodeURIComponent(
+      page
+    )}`,
+    {
+      headers: {
+        Authorization: `Client-ID ${process.env.UNSPLASH_ACCESS_KEY}`,
+      },
+      cache: "no-store", // Disable caching to always get fresh results
+    }
+  );
+
+  if (!res.ok) {
+    return NextResponse.json(
+      { error: "Failed to fetch from Unsplash" },
+      { status: res.status }
+    );
+  }
+
+  const data = await res.json();
+
+  const images: UnsplashImage[] = data.results.map((img: any) => ({
+    id: img.id,
+    alt_description: img.alt_description,
+    description: img.description,
+    urls: img.urls,
+    user: {
+      name: img.user.name,
+      username: img.user.username,
+      portfolio_url: img.user.portfolio_url,
+      profile_image: img.user.profile_image,
+    },
+    likes: img.likes,
+    width: img.width,
+    height: img.height,
+  }));
+
+  const result = {
+    total: data.total,
+    total_pages: data.total_pages,
+    images: images,
+  };
+
+  console.log("Fetched images:", result);
+
+  return NextResponse.json(result);
+}

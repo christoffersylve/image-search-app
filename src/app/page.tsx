@@ -1,103 +1,152 @@
-import Image from "next/image";
+"use client";
+import ImageGrid from "@/components/imageGrid";
+import SearchBar from "@/components/searchbar";
+import { UnsplashImage } from "@/types/unsplash";
+import { useEffect, useState } from "react";
+import { useSearchParams, useRouter } from "next/navigation";
+import {
+  Pagination,
+  PaginationContent,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from "@/components/ui/pagination";
+import Link from "next/link";
 
 export default function Home() {
-  return (
-    <div className="font-sans grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="font-mono list-inside list-decimal text-sm/6 text-center sm:text-left">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] font-mono font-semibold px-1 py-0.5 rounded">
-              src/app/page.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
+  const nbrImagesPerPage: number = 24;
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
-        </div>
-      </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
+  const searchParams = useSearchParams();
+  const router = useRouter();
+
+  const initialQuery = searchParams.get("search") || "";
+  const page = Number(searchParams.get("page") || 1);
+
+  const [query, setQuery] = useState(initialQuery);
+  const [totalPages, setTotalPages] = useState(1);
+  const [images, setImages] = useState<UnsplashImage[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+
+  function sleep(ms: number): Promise<void> {
+    return new Promise((resolve) => setTimeout(resolve, ms));
+  }
+
+  useEffect(() => {
+    if (initialQuery) {
+      console.log("Searching for:", initialQuery, "Page:", page);
+      getImages(initialQuery, page);
+    } else {
+      setQuery("");
+      setImages([]);
+      setIsLoading(false);
+    }
+  }, [initialQuery, page]);
+
+  async function getImages(
+    query: string,
+    newPage: number
+  ): Promise<UnsplashImage[]> {
+    setIsLoading(true);
+    // await sleep(2000);
+    const res = await fetch(
+      `/api/search?q=${query}&per_page=${nbrImagesPerPage}&page=${newPage}`,
+      { cache: "no-store" }
+    );
+
+    const data = await res.json();
+
+    setTotalPages(data.total_pages);
+    setImages(data.images);
+    setIsLoading(false);
+
+    console.log("data", data);
+
+    return data.images;
+  }
+
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    router.push(`/?search=${encodeURIComponent(query)}&page=1`);
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      if (query) {
+        router.push(`/?search=${encodeURIComponent(query)}&page=1`);
+      }
+    }
+  };
+
+  const setPage = (newPage: number) => {
+    const params = new URLSearchParams(searchParams.toString()); // from useSearchParams()
+    params.set("page", newPage.toString());
+    router.push(`?${params.toString()}`);
+  };
+
+  return (
+    <div className="flex min-h-screen flex-col items-center p-24 gap-5">
+      {/* TODOD: Add a header and a footer */}
+      <Link href="/" className="block">
+        <h1 className="text-4xl md:text-7xl font-bold p-10 cursor-pointer">
+          Image Search
+        </h1>
+      </Link>
+      <form onSubmit={handleSearch} className="mb-4">
+        <SearchBar
+          searchTerm={query}
+          setSearchTerm={setQuery}
+          handleKeyDown={handleKeyDown}
+        />
+      </form>
+      {(images.length > 0 || isLoading) && (
+        <>
+          <ImageGrid
+            images={images}
+            isLoading={isLoading}
+            nbrImagesPerPage={nbrImagesPerPage}
           />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
+          <div className="mt-6 flex justify-center">
+            <Pagination>
+              <PaginationContent>
+                <PaginationItem>
+                  <PaginationPrevious
+                    href="#"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      if (page > 1) setPage(page - 1);
+                    }}
+                    className={
+                      page === 1 ? "pointer-events-none opacity-50" : ""
+                    }
+                  />
+                </PaginationItem>
+
+                {/* Current page */}
+                <PaginationItem>
+                  <PaginationLink isActive>{page}</PaginationLink>
+                </PaginationItem>
+
+                <PaginationItem>
+                  <PaginationNext
+                    href="#"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      if (page < totalPages) setPage(page + 1);
+                    }}
+                    className={
+                      page === totalPages
+                        ? "pointer-events-none opacity-50"
+                        : ""
+                    }
+                  />
+                </PaginationItem>
+              </PaginationContent>
+            </Pagination>
+          </div>
+        </>
+      )}
     </div>
   );
 }
