@@ -17,6 +17,7 @@ import FilterOnColor from "@/components/ColorTag";
 import { get } from "http";
 
 export default function Home() {
+  
   const nbrImagesPerPage: number = 24;
 
   const searchParams = useSearchParams();
