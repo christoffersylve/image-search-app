@@ -1,9 +1,9 @@
 "use client";
 import ImageGrid from "@/components/imageGrid";
 import SearchBar from "@/components/searchbar";
-import { UnsplashImage } from "@/types/unsplash";
+import { UnsplashColor, UnsplashImage } from "@/types/unsplash";
 import { useEffect, useState } from "react";
-import { useSearchParams, useRouter } from "next/navigation";
+import { useSearchParams, useRouter, usePathname } from "next/navigation";
 import {
   Pagination,
   PaginationContent,
@@ -13,6 +13,7 @@ import {
   PaginationPrevious,
 } from "@/components/ui/pagination";
 import Link from "next/link";
+import FilterOnColor from "@/components/filterOnColor";
 
 export default function Home() {
   const nbrImagesPerPage: number = 24;
@@ -21,6 +22,9 @@ export default function Home() {
   const router = useRouter();
 
   const initialQuery = searchParams.get("search") || "";
+  const initialColors =
+    (searchParams.get("colors")?.split(",") as UnsplashColor[]) || [];
+
   const page = Number(searchParams.get("page") || 1);
 
   const [query, setQuery] = useState(initialQuery);
@@ -28,24 +32,25 @@ export default function Home() {
   const [images, setImages] = useState<UnsplashImage[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [hasSearched, setHasSearched] = useState(false);
-
-  function sleep(ms: number): Promise<void> {
-    return new Promise((resolve) => setTimeout(resolve, ms));
-  }
+  const [selectedColors, setSelectedColors] =
+    useState<UnsplashColor[]>(initialColors);
 
   useEffect(() => {
+    console.log("testing for race condition");
     if (initialQuery) {
       if (page < 1) {
+        console.log("Redirecting to page 1");
         router.push(`/?search=${encodeURIComponent(initialQuery)}&page=1`);
         return;
       }
-
       getImages(initialQuery, page);
     } else {
+      // Clear states if no initial Query
       setHasSearched(false);
       setQuery("");
       setImages([]);
       setIsLoading(false);
+      setSelectedColors([]);
     }
   }, [initialQuery, page]);
 
@@ -85,7 +90,10 @@ export default function Home() {
     if (e.key === "Enter") {
       e.preventDefault();
       if (query) {
-        router.push(`/?search=${encodeURIComponent(query)}&page=1`);
+        const params = new URLSearchParams(searchParams.toString());
+        params.set("search", query);
+        params.set("page", "1");
+        router.push(`?${params.toString()}`);
       }
     }
   };
@@ -96,6 +104,34 @@ export default function Home() {
     router.push(`?${params.toString()}`);
   };
 
+  const updateColorUrl = (colors: UnsplashColor[]) => {
+    const params = new URLSearchParams(searchParams.toString());
+    if (colors.length > 0) {
+      params.set("colors", colors.join(","));
+    } else {
+      params.delete("colors");
+    }
+    router.push(`?${params.toString()}`);
+  };
+
+  const handleRemove = (value: UnsplashColor) => {
+    if (!selectedColors.includes(value)) return;
+    const updated = selectedColors.filter((v) => v !== value);
+    console.log("Removing", value, updated);
+    setSelectedColors(updated);
+    updateColorUrl(updated);
+  };
+
+  const handleSelect = (value: UnsplashColor) => {
+    if (selectedColors.includes(value)) {
+      handleRemove(value);
+      return;
+    }
+    const updated = [...selectedColors, value];
+    setSelectedColors(updated);
+    updateColorUrl(updated);
+  };
+
   return (
     <div className="flex min-h-screen flex-col items-center p-24 gap-5">
       {/* TODOD: Add a header and a footer */}
@@ -104,13 +140,18 @@ export default function Home() {
           Image Search
         </h1>
         {/* Search icon */}
-        
       </Link>
       <form onSubmit={handleSearch} className="mb-4">
         <SearchBar
           searchTerm={query}
           setSearchTerm={setQuery}
           handleKeyDown={handleKeyDown}
+        />
+        <FilterOnColor
+          selectedColors={selectedColors}
+          setSelectedColors={setSelectedColors}
+          handleRemove={handleRemove}
+          handleSelect={handleSelect}
         />
       </form>
       {hasSearched || isLoading ? (
