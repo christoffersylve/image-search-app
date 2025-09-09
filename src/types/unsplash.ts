@@ -82,3 +82,7 @@ export const colorStyleMap: Record<UnsplashColor, React.CSSProperties> = {
   teal: { backgroundColor: "#14b8a6" },
   blue: { backgroundColor: "#3b82f6" },
 };
+
+export function isValidUnsplashColor(color: string): color is UnsplashColor {
+  return unsplashColors.some(({ id }) => id === color);
+}

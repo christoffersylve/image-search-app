@@ -1,5 +1,5 @@
 // app/api/search/route.ts
-import { unsplashColors, UnsplashImage } from "@/types/unsplash";
+import { isValidUnsplashColor, unsplashColors, UnsplashImage } from "@/types/unsplash";
 import { NextResponse } from "next/server";
 
 export async function GET(req: Request) {
@@ -8,31 +8,35 @@ export async function GET(req: Request) {
   const query = searchParams.get("q");
   const perPage = searchParams.get("per_page") || "24";
   const page = searchParams.get("page") || "1";
-  const color = searchParams.get("color"); 
+  const color = searchParams.get("color");
 
   if (!query) {
     return NextResponse.json({ error: "Missing query" }, { status: 400 });
   } else {
     params.set("query", query);
   }
-  
-  const perPage_ = Number(perPage)
+
+  const perPage_ = Number(perPage);
   if (!isNaN(perPage_) && perPage_ >= 1 && perPage_ <= 30) {
     params.set("per_page", perPage.toString());
   } else {
-    params.set("per_page", "24"); 
+    params.set("per_page", "24");
   }
 
   if (page) params.set("page", page.toString());
 
-  if (color&&(unsplashColors.some(({ id }) => id === color))) {
-    params.set("color", color);
-  } else {
-    return NextResponse.json({ error: `Invalid color:${color}` }, { status: 400 });
+  if (color ) {
+    if (isValidUnsplashColor(color)) {
+      params.set("color", color);
+    } else {
+      return NextResponse.json(
+        { error: `Invalid color:${color}` },
+        { status: 400 }
+      );
+    }
   }
 
   try {
-
     const res = await fetch(
       `https://api.unsplash.com/search/photos?${params.toString()}`,
       {

@@ -1,7 +1,7 @@
 "use client";
 import ImageGrid from "@/components/ImageGrid";
 import SearchBar from "@/components/SearchBar";
-import { UnsplashColor, UnsplashImage } from "@/types/unsplash";
+import { isValidUnsplashColor, UnsplashColor, unsplashColors, UnsplashImage } from "@/types/unsplash";
 import { useEffect, useState } from "react";
 import { useSearchParams, useRouter, usePathname } from "next/navigation";
 import {
@@ -53,10 +53,7 @@ export default function Home() {
     }
   }, [initialQuery, page]);
 
-  async function getImages(
-    query: string,
-    newPage: number
-  ): Promise<void> {
+  async function getImages(query: string, newPage: number): Promise<void> {
     setIsLoading(true);
     setHasSearched(true);
 
@@ -67,7 +64,12 @@ export default function Home() {
     });
 
     if (selectedColors[0]) {
-      params.set("color", selectedColors[0]);
+      if (isValidUnsplashColor(selectedColors[0])) {
+        params.set("color", selectedColors[0]);
+      } else {
+        setSelectedColors([]);
+        updateColorUrl([]);
+      }
     }
 
     try {
