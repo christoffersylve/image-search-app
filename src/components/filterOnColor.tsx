@@ -26,51 +26,57 @@ const FilterOnColor = ({
   handleRemove: (value: UnsplashColor) => void;
   handleSelect: (value: UnsplashColor) => void;
 }) => {
+  const handleDisableTag = (tag: UnsplashColor) => {
+    return selectedColors.length >= 1 && !selectedColors.includes(tag);
+  };
+
   return (
-    <Tags className="max-w-sm mt-3">
-      <TagsTrigger>
-        {selectedColors.map((tag) => (
-          <TagsValue
-            key={tag}
-            onRemove={() => handleRemove(tag)}
-            style={colorStyleMap[tag]}
+    <div className="h-24 overflow-hidden rounded p-2 w-3/4 ">
+      <Tags className="max-w-sm mt-3">
+        <TagsTrigger>
+          {selectedColors.map((tag) => (
+            <TagsValue
+              key={tag}
+              onRemove={() => handleRemove(tag)}
+              style={colorStyleMap[tag]}
+            >
+              {unsplashColors.find((t) => t.id === tag)?.name}
+            </TagsValue>
+          ))}
+        </TagsTrigger>
+        <TagsContent>
+          {/* <TagsInput placeholder="Search tag..." /> */}
+          <button
+            type="button"
+            className="px-2 py-1 text-xs cursor-pointer mt-2"
+            onClick={() => setSelectedColors([])}
           >
-            {unsplashColors.find((t) => t.id === tag)?.name}
-          </TagsValue>
-        ))}
-      </TagsTrigger>
-      <TagsContent>
-        {/* <TagsInput placeholder="Search tag..." /> */}
-        <button
-          type="button"
-          className="px-2 py-1 text-xs cursor-pointer mt-2"
-          onClick={() => setSelectedColors([])}
-        >
-          Clear all
-        </button>
-        <TagsList>
-          <TagsEmpty />
-          <TagsGroup>
-            {unsplashColors.map((tag) => (
-              <TagsItem
-                key={tag.id}
-                onSelect={(id: string) => {
-                  const color = unsplashColors.find((t) => t.id === id);
-                  if (color) handleSelect(color.id);
-                }}
-                value={tag.id}
-                onClick={() => console.log("ndsidhaos")}
-              >
-                {tag.name}
-                {selectedColors.includes(tag.id) && (
-                  <CheckIcon className="text-muted-foreground" size={14} />
-                )}
-              </TagsItem>
-            ))}
-          </TagsGroup>
-        </TagsList>
-      </TagsContent>
-    </Tags>
+            Clear tag
+          </button>
+          <TagsList>
+            <TagsEmpty />
+            <TagsGroup>
+              {unsplashColors.map((tag) => (
+                <TagsItem
+                  key={tag.id}
+                  onSelect={(id: string) => {
+                    const color = unsplashColors.find((t) => t.id === id);
+                    if (color) handleSelect(color.id);
+                  }}
+                  value={tag.id}
+                  disabled={handleDisableTag(tag.id)}
+                >
+                  {tag.name}
+                  {selectedColors.includes(tag.id) && (
+                    <CheckIcon className="text-muted-foreground" size={14} />
+                  )}
+                </TagsItem>
+              ))}
+            </TagsGroup>
+          </TagsList>
+        </TagsContent>
+      </Tags>
+    </div>
   );
 };
 

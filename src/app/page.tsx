@@ -14,6 +14,7 @@ import {
 } from "@/components/ui/pagination";
 import Link from "next/link";
 import FilterOnColor from "@/components/filterOnColor";
+import { get } from "http";
 
 export default function Home() {
   const nbrImagesPerPage: number = 24;
@@ -61,10 +62,19 @@ export default function Home() {
     setIsLoading(true);
     setHasSearched(true);
 
-    const res = await fetch(
-      `/api/search?q=${query}&per_page=${nbrImagesPerPage}&page=${newPage}`,
-      { cache: "no-store" }
-    );
+    const params = new URLSearchParams({
+      q: query,
+      per_page: nbrImagesPerPage.toString(),
+      page: newPage.toString(),
+    });
+
+    if (selectedColors[0]) {
+      params.set("color", selectedColors[0]);
+    }
+
+    const res = await fetch(`/api/search?${params.toString()}`, {
+      cache: "no-store",
+    });
 
     const data = await res.json();
 
@@ -74,8 +84,19 @@ export default function Home() {
       router.push(`/?search=${encodeURIComponent(query)}&page=${1}`);
     }
 
-    setImages(data.images);
+    {
+      /*
+      Check for errors
+    */
+    }
 
+    if (data.error) {
+      console.error("Error fetching images:", data.error);
+      setIsLoading(false);
+      return [];
+    }
+
+    setImages(data.images);
     setIsLoading(false);
 
     return data.images;
@@ -90,10 +111,12 @@ export default function Home() {
     if (e.key === "Enter") {
       e.preventDefault();
       if (query) {
+        console.log("Searching for", query);
         const params = new URLSearchParams(searchParams.toString());
         params.set("search", query);
         params.set("page", "1");
         router.push(`?${params.toString()}`);
+        getImages(query, 1);
       }
     }
   };
@@ -105,6 +128,7 @@ export default function Home() {
   };
 
   const updateColorUrl = (colors: UnsplashColor[]) => {
+    console.log("Updating colors in URL:", colors);
     const params = new URLSearchParams(searchParams.toString());
     if (colors.length > 0) {
       params.set("colors", colors.join(","));
@@ -141,7 +165,10 @@ export default function Home() {
         </h1>
         {/* Search icon */}
       </Link>
-      <form onSubmit={handleSearch} className="mb-4">
+      <form
+        onSubmit={handleSearch}
+        className="flex flex-col justify-center items-center mb-4 w-96"
+      >
         <SearchBar
           searchTerm={query}
           setSearchTerm={setQuery}

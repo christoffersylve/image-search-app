@@ -66,19 +66,19 @@ export const colorClassMap: Record<UnsplashColor, string> = {
 };
 
 export const colorStyleMap: Record<UnsplashColor, React.CSSProperties> = {
-  black_and_white: { backgroundColor: "#1f2937" }, // Tailwind's gray-900
+  black_and_white: { backgroundColor: "#1f2937" },
   black: { backgroundColor: "#000000" },
   white: {
     backgroundColor: "#ffffff",
     color: "#000000",
     border: "1px solid #000000",
   },
-  yellow: { backgroundColor: "#facc15" }, // yellow-500
-  orange: { backgroundColor: "#f97316" }, // orange-500
-  red: { backgroundColor: "#ef4444" }, // red-500
-  purple: { backgroundColor: "#a855f7" }, // purple-500
-  magenta: { backgroundColor: "#ec4899" }, // pink-500
-  green: { backgroundColor: "#22c55e" }, // green-500
-  teal: { backgroundColor: "#14b8a6" }, // teal-500
-  blue: { backgroundColor: "#3b82f6" }, // blue-500
+  yellow: { backgroundColor: "#facc15" },
+  orange: { backgroundColor: "#f97316" },
+  red: { backgroundColor: "#ef4444" },
+  purple: { backgroundColor: "#a855f7" },
+  magenta: { backgroundColor: "#ec4899" },
+  green: { backgroundColor: "#22c55e" },
+  teal: { backgroundColor: "#14b8a6" },
+  blue: { backgroundColor: "#3b82f6" },
 };
