@@ -1,9 +1,9 @@
 import React from "react";
-import ImageCard from "./imageCard";
 import { UnsplashImage } from "@/types/unsplash";
 import { Skeleton } from "./ui/skeleton";
 import { Card } from "./ui/card";
 import { Button } from "./ui/button";
+import ImageCard from "./ImageCard";
 
 const ImageGrid = ({
   nbrImagesPerPage,

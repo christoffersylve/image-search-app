@@ -13,7 +13,6 @@ import {
 } from "./ui/shadcn-io/tags";
 import { CheckIcon } from "lucide-react";
 import { unsplashColors } from "@/types/unsplash";
-import { colorClassMap } from "@/types/unsplash";
 
 const FilterOnColor = ({
   selectedColors,

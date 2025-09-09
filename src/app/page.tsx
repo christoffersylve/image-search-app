@@ -1,6 +1,6 @@
 "use client";
-import ImageGrid from "@/components/imageGrid";
-import SearchBar from "@/components/searchbar";
+import ImageGrid from "@/components/ImageGrid";
+import SearchBar from "@/components/SearchBar";
 import { UnsplashColor, UnsplashImage } from "@/types/unsplash";
 import { useEffect, useState } from "react";
 import { useSearchParams, useRouter, usePathname } from "next/navigation";
@@ -13,7 +13,7 @@ import {
   PaginationPrevious,
 } from "@/components/ui/pagination";
 import Link from "next/link";
-import FilterOnColor from "@/components/filterOnColor";
+import FilterOnColor from "@/components/ColotTag";
 import { get } from "http";
 
 export default function Home() {
@@ -58,7 +58,7 @@ export default function Home() {
   async function getImages(
     query: string,
     newPage: number
-  ): Promise<UnsplashImage[]> {
+  ): Promise<void> {
     setIsLoading(true);
     setHasSearched(true);
 
@@ -72,34 +72,31 @@ export default function Home() {
       params.set("color", selectedColors[0]);
     }
 
-    const res = await fetch(`/api/search?${params.toString()}`, {
-      cache: "no-store",
-    });
+    try {
+      const res = await fetch(`/api/search?${params.toString()}`, {
+        cache: "no-store",
+      });
 
-    const data = await res.json();
+      if (!res.ok) {
+        const errorData = await res.json();
+        setIsLoading(false);
+        throw new Error(errorData.error || "Unknown error");
+      }
 
-    setTotalPages(data.total_pages);
+      const data = await res.json();
 
-    if (page > data.total_pages && data.total_pages > 0) {
-      router.push(`/?search=${encodeURIComponent(query)}&page=${1}`);
-    }
+      setTotalPages(data.total_pages);
 
-    {
-      /*
-      Check for errors
-    */
-    }
+      if (page > data.total_pages && data.total_pages > 0) {
+        router.push(`/?search=${encodeURIComponent(query)}&page=${1}`);
+      }
 
-    if (data.error) {
-      console.error("Error fetching images:", data.error);
+      setImages(data.images);
       setIsLoading(false);
-      return [];
+    } catch (err: any) {
+      console.error("Client error:", err.message);
+      throw new Error(err.message);
     }
-
-    setImages(data.images);
-    setIsLoading(false);
-
-    return data.images;
   }
 
   const handleSearch = (e: React.FormEvent) => {
