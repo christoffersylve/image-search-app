@@ -37,10 +37,8 @@ export default function Home() {
     useState<UnsplashColor[]>(initialColors);
 
   useEffect(() => {
-    console.log("testing for race condition");
     if (initialQuery) {
       if (page < 1) {
-        console.log("Redirecting to page 1");
         router.push(`/?search=${encodeURIComponent(initialQuery)}&page=1`);
         return;
       }
@@ -108,7 +106,6 @@ export default function Home() {
     if (e.key === "Enter") {
       e.preventDefault();
       if (query) {
-        console.log("Searching for", query);
         const params = new URLSearchParams(searchParams.toString());
         params.set("search", query);
         params.set("page", "1");
@@ -125,7 +122,6 @@ export default function Home() {
   };
 
   const updateColorUrl = (colors: UnsplashColor[]) => {
-    console.log("Updating colors in URL:", colors);
     const params = new URLSearchParams(searchParams.toString());
     if (colors.length > 0) {
       params.set("colors", colors.join(","));
@@ -138,7 +134,6 @@ export default function Home() {
   const handleRemove = (value: UnsplashColor) => {
     if (!selectedColors.includes(value)) return;
     const updated = selectedColors.filter((v) => v !== value);
-    console.log("Removing", value, updated);
     setSelectedColors(updated);
     updateColorUrl(updated);
   };

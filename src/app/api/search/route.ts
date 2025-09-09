@@ -11,12 +11,10 @@ export async function GET(req: Request) {
   const color = searchParams.get("color"); 
 
   if (!query) {
-    console.log("Missing query parameter");
     return NextResponse.json({ error: "Missing query" }, { status: 400 });
   } else {
     params.set("query", query);
   }
-  
   
   const perPage_ = Number(perPage)
   if (!isNaN(perPage_) && perPage_ >= 1 && perPage_ <= 30) {
