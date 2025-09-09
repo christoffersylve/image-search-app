@@ -27,7 +27,7 @@ A modern image search application built with **Next.js**, **React**, and **TypeS
 - [Next.js](https://nextjs.org/)
 - [React](https://react.dev/)
 - [TypeScript](https://www.typescriptlang.org/)
-- [Tailwind] (https://tailwindcss.com/)
+- [Tailwind](https://tailwindcss.com/)
 - [Unsplash API](https://unsplash.com/documentation)
 
 ## 📦 Installation
