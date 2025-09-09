@@ -10,8 +10,6 @@ export async function GET(req: Request) {
   const page = searchParams.get("page") || "1";
   const color = searchParams.get("color"); 
 
-  
-
   if (!query) {
     console.log("Missing query parameter");
     return NextResponse.json({ error: "Missing query" }, { status: 400 });
