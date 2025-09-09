@@ -13,7 +13,7 @@ import {
   PaginationPrevious,
 } from "@/components/ui/pagination";
 import Link from "next/link";
-import FilterOnColor from "@/components/ColotTag";
+import FilterOnColor from "@/components/ColorTag";
 import { get } from "http";
 
 export default function Home() {
